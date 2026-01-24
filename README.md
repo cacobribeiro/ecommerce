@@ -42,7 +42,8 @@ Crie o arquivo `backend/.env` com:
 ```
 PORT=4000
 JWT_SECRET=troque-este-valor
-ADMIN_TOKEN=defina-um-token-seguro
+ADMIN_USER=defina-um-login
+ADMIN_PASS=defina-uma-senha
 ```
 
 ### Frontend
@@ -94,7 +95,7 @@ npm run lint
 
 1. Acesse `/admin`.
 2. Informe o login e senha definidos em `VITE_CLIENT` e `VITE_CLIENT_PASS`.
-3. Informe o token configurado em `ADMIN_TOKEN`.
+3. Garanta que os mesmos valores estejam configurados no backend em `ADMIN_USER` e `ADMIN_PASS`.
 4. Atualize as imagens e os preços.
 
 > As alterações ficam em memória (reinicia ao reiniciar o backend). Para persistência real, use um storage (S3, Cloudinary) e banco.
@@ -135,7 +136,8 @@ O frontend organiza componentes reutilizáveis (header, footer, cards, botões, 
 3. Defina as variáveis de ambiente:
    - `PORT=4000`
    - `JWT_SECRET=troque-este-valor`
-   - `ADMIN_TOKEN=defina-um-token-seguro`
+   - `ADMIN_USER=defina-um-login`
+   - `ADMIN_PASS=defina-uma-senha`
 
 > Este repositório já inclui `render.yaml` com o serviço de API.
 

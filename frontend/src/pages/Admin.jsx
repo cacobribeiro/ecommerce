@@ -26,7 +26,6 @@ const assetFields = [
 
 const Admin = () => {
   const { config, setConfig } = useSiteConfig();
-  const [token, setToken] = useState("");
   const [credentials, setCredentials] = useState({ login: "", password: "" });
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
@@ -41,7 +40,7 @@ const Admin = () => {
     reader.onloadend = async () => {
       try {
         const image = reader.result;
-        const response = await updateAsset(token, { key, image });
+        const response = await updateAsset(credentials, { key, image });
         setConfig((prev) => ({ ...prev, assets: response.assets }));
         setFeedback({ type: "success", message: "Imagem atualizada com sucesso." });
       } catch (error) {
@@ -53,7 +52,7 @@ const Admin = () => {
 
   const handlePricingSubmit = async () => {
     try {
-      const response = await updatePricing(token, {
+      const response = await updatePricing(credentials, {
         pricingGroup,
         pricingPersonal
       });
@@ -133,17 +132,6 @@ const Admin = () => {
         title="Gerenciar conteúdo"
         subtitle="Atualize imagens e preços sem alterar o código."
       />
-      <Stack spacing={2} sx={{ maxWidth: 420 }}>
-        <TextField
-          label="Token de admin"
-          value={token}
-          onChange={(event) => setToken(event.target.value)}
-          helperText="Defina o mesmo token em ADMIN_TOKEN no backend."
-        />
-      </Stack>
-
-      <Divider sx={{ my: 4 }} />
-
       <Typography variant="h5" sx={{ mb: 2 }}>
         Imagens
       </Typography>
