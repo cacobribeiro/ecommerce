@@ -41,7 +41,7 @@ const Home = () => (
         <Grid item xs={12} md={6}>
           <Box
             component="img"
-            src="/placeholders/placeholder-card.svg"
+            src="/camila/home_1.png"
             alt="Foto da professora"
             sx={{ width: "100%", borderRadius: 6, border: "1px solid rgba(202, 163, 84, 0.2)" }}
           />
