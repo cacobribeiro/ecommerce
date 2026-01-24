@@ -33,6 +33,11 @@ router.put("/admin/assets", adminAuth, (req, res) => {
   if (!key || !image) {
     return res.status(400).json({ message: "Informe chave e imagem." });
   }
+  if (typeof image !== "string" || !image.startsWith("data:image/webp")) {
+    return res.status(400).json({
+      message: "Envie a imagem no formato WebP (data URL)."
+    });
+  }
 
   const updated = updateAsset(key, image);
   if (!updated) {
