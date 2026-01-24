@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -8,25 +7,28 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import Section from "../components/Section.jsx";
-import SectionTitle from "../components/SectionTitle.jsx";
+import { useMemo, useState } from "react";
 import PrimaryButton from "../components/PrimaryButton.jsx";
 import SecondaryButton from "../components/SecondaryButton.jsx";
+import Section from "../components/Section.jsx";
+import SectionTitle from "../components/SectionTitle.jsx";
 import { useSiteConfig } from "../context/SiteConfigContext.jsx";
 import { updateAsset, updatePricing } from "../services/api.js";
 
 const assetFields = [
-  { label: "Imagem do Hero (Home)", key: "homeHero" },
-  { label: "Categoria - Aulas curtas", key: "categories.aulas-curtas" },
-  { label: "Categoria - Iniciantes", key: "categories.iniciantes" },
-  { label: "Categoria - Invertidas", key: "categories.invertidas" },
-  { label: "Planos - Grupo", key: "plans.group" },
-  { label: "Planos - Personal", key: "plans.personal" }
+  { label: "Imagem do Hero (Home)", key: "homeHero", size: "1600x900" },
+  { label: "Categoria - Aulas curtas", key: "categories.aulas-curtas", size: "1200x800" },
+  { label: "Categoria - Iniciantes", key: "categories.iniciantes", size: "1200x800" },
+  { label: "Categoria - Invertidas", key: "categories.invertidas", size: "1200x800" },
+  { label: "Planos - Grupo", key: "plans.group", size: "1200x800" },
+  { label: "Planos - Personal", key: "plans.personal", size: "1200x800" }
 ];
 
 const Admin = () => {
   const { config, setConfig } = useSiteConfig();
   const [token, setToken] = useState("");
+  const [credentials, setCredentials] = useState({ login: "", password: "" });
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [pricingGroup, setPricingGroup] = useState(config.pricingGroup);
   const [pricingPersonal, setPricingPersonal] = useState(config.pricingPersonal);
@@ -70,6 +72,60 @@ const Admin = () => {
     return "";
   };
 
+  const handleCredentialsChange = (event) => {
+    setCredentials((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+  };
+
+  const handleAuthSubmit = (event) => {
+    event.preventDefault();
+    const expectedLogin = import.meta.env.VITE_CLIENT || "login";
+    const expectedPass = import.meta.env.VITE_CLIENT_PASS || "senha";
+    const isValid =
+      credentials.login === expectedLogin && credentials.password === expectedPass;
+    if (!isValid) {
+      setFeedback({ type: "error", message: "Credenciais inválidas." });
+      return;
+    }
+    setIsAuthorized(true);
+    setFeedback({ type: "", message: "" });
+  };
+
+  if (!isAuthorized) {
+    return (
+      <Section>
+        <SectionTitle
+          overline="Admin"
+          title="Acesso restrito"
+          subtitle="Faça login para acessar a área administrativa."
+        />
+        <Stack
+          spacing={2}
+          component="form"
+          onSubmit={handleAuthSubmit}
+          sx={{ maxWidth: 420 }}
+        >
+          <TextField
+            name="login"
+            label="Login"
+            value={credentials.login}
+            onChange={handleCredentialsChange}
+            required
+          />
+          <TextField
+            name="password"
+            label="Senha"
+            type="password"
+            value={credentials.password}
+            onChange={handleCredentialsChange}
+            required
+          />
+          <PrimaryButton type="submit">Entrar</PrimaryButton>
+          {feedback.message && <Alert severity={feedback.type}>{feedback.message}</Alert>}
+        </Stack>
+      </Section>
+    );
+  }
+
   return (
     <Section>
       <SectionTitle
@@ -104,6 +160,9 @@ const Admin = () => {
             >
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 {field.label}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+                Tamanho recomendado: {field.size}
               </Typography>
               <Box
                 component="img"

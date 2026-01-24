@@ -90,15 +90,16 @@ npm run lint
 > - **E-mail:** `lara@yoga.com`
 > - **Senha:** `123456`
 
-## 🛠️ Admin (imagens e preços)
+## ���️ Admin (imagens e preços)
 
 1. Acesse `/admin`.
-2. Informe o token configurado em `ADMIN_TOKEN`.
-3. Atualize as imagens e os preços.
+2. Informe o login e senha definidos em `VITE_CLIENT` e `VITE_CLIENT_PASS`.
+3. Informe o token configurado em `ADMIN_TOKEN`.
+4. Atualize as imagens e os preços.
 
 > As alterações ficam em memória (reinicia ao reiniciar o backend). Para persistência real, use um storage (S3, Cloudinary) e banco.
 
-## 📬 Endpoints principais
+## ��� Endpoints principais
 
 - `POST /api/login` (login)
 - `POST /api/register` (cadastro)
