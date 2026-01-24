@@ -4,10 +4,18 @@ import { siteConfig, updateAsset, updatePricing } from "../data.js";
 const router = express.Router();
 
 const adminAuth = (req, res, next) => {
-  const token = req.headers["x-admin-token"];
-  const expected = process.env.ADMIN_TOKEN || "admin123";
-  if (!token || token !== expected) {
-    return res.status(401).json({ message: "Token de admin inválido." });
+  const authHeader = req.headers.authorization || "";
+  const [scheme, encoded] = authHeader.split(" ");
+  if (scheme !== "Basic" || !encoded) {
+    return res.status(401).json({ message: "Credenciais de admin inválidas." });
+  }
+
+  const decoded = Buffer.from(encoded, "base64").toString("utf8");
+  const [login, password] = decoded.split(":");
+  const expectedLogin = process.env.ADMIN_USER || "login";
+  const expectedPass = process.env.ADMIN_PASS || "senha";
+  if (login !== expectedLogin || password !== expectedPass) {
+    return res.status(401).json({ message: "Credenciais de admin inválidas." });
   }
   return next();
 };

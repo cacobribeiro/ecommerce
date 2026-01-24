@@ -48,16 +48,19 @@ export const sendContactMessage = (payload) =>
 
 export const fetchSiteConfig = () => apiRequest("/api/site-config");
 
-export const updateAsset = (token, payload) =>
+const encodeAdminCredentials = ({ login, password }) =>
+  `Basic ${btoa(`${login}:${password}`)}`;
+
+export const updateAsset = (credentials, payload) =>
   apiRequest("/api/admin/assets", {
     method: "PUT",
-    headers: { "X-Admin-Token": token },
+    headers: { Authorization: encodeAdminCredentials(credentials) },
     body: JSON.stringify(payload)
   });
 
-export const updatePricing = (token, payload) =>
+export const updatePricing = (credentials, payload) =>
   apiRequest("/api/admin/pricing", {
     method: "PUT",
-    headers: { "X-Admin-Token": token },
+    headers: { Authorization: encodeAdminCredentials(credentials) },
     body: JSON.stringify(payload)
   });
