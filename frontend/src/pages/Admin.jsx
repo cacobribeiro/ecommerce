@@ -12,13 +12,19 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PrimaryButton from "../components/PrimaryButton.jsx";
 import SecondaryButton from "../components/SecondaryButton.jsx";
 import Section from "../components/Section.jsx";
 import SectionTitle from "../components/SectionTitle.jsx";
 import { useSiteConfig } from "../context/SiteConfigContext.jsx";
-import { fetchAdminAssets, updateAsset, updatePricing } from "../services/api.js";
+import {
+  adminLogin,
+  fetchAdminAssets,
+  fetchAdminSession,
+  updateAsset,
+  updatePricing
+} from "../services/api.js";
 
 const assetFields = [
   { label: "Imagem do Hero (Home)", key: "homeHero", size: "1600x900" },
@@ -48,6 +54,25 @@ const Admin = () => {
   });
 
   const assetMap = useMemo(() => config.assets, [config.assets]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchAdminSession()
+      .then((data) => {
+        if (!isMounted || !data.authenticated) return;
+        setIsAuthorized(true);
+        return fetchAdminAssets()
+          .then((assets) => {
+            if (!isMounted) return;
+            setConfig((prev) => ({ ...prev, assets }));
+          })
+          .catch(() => null);
+      })
+      .catch(() => null);
+    return () => {
+      isMounted = false;
+    };
+  }, [setConfig]);
 
   const parseSize = (size) => {
     const [width, height] = size.split("x").map((value) => Number(value));
@@ -110,7 +135,7 @@ const Admin = () => {
   const handleCropSave = async () => {
     try {
       const image = await createCroppedWebp(cropState);
-      const response = await updateAsset(credentials, { key: cropState.key, image });
+      const response = await updateAsset({ key: cropState.key, image });
       setConfig((prev) => ({ ...prev, assets: response.assets }));
       setFeedback({ type: "success", message: "Imagem atualizada com sucesso." });
       setCropState((prev) => ({ ...prev, open: false }));
@@ -121,7 +146,7 @@ const Admin = () => {
 
   const handlePricingSubmit = async () => {
     try {
-      const response = await updatePricing(credentials, {
+      const response = await updatePricing({
         pricingGroup,
         pricingPersonal
       });
@@ -147,7 +172,8 @@ const Admin = () => {
   const handleAuthSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetchAdminAssets(credentials);
+      await adminLogin(credentials);
+      const response = await fetchAdminAssets();
       setConfig((prev) => ({ ...prev, assets: response }));
       setIsAuthorized(true);
       setFeedback({ type: "", message: "" });
