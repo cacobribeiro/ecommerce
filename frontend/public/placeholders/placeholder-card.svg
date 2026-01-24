@@ -1,0 +1,7 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="420" rx="32" fill="#F3EAE1"/>
+  <circle cx="520" cy="110" r="56" fill="#E2D2F2"/>
+  <path d="M120 300C180 250 260 250 320 300C380 350 460 350 520 300" stroke="#C9A24A" stroke-width="4" stroke-linecap="round"/>
+  <text x="120" y="190" fill="#6D4AA6" font-family="Playfair Display, serif" font-size="32" font-weight="600">Caminho do Ser</text>
+  <text x="120" y="230" fill="#5B4B6B" font-family="Inter, sans-serif" font-size="18">Imagem ilustrativa</text>
+</svg>

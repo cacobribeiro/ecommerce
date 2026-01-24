@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: yoga-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: JWT_SECRET
+        value: troque-este-valor
