@@ -99,7 +99,7 @@ export const recordedLessons = [
     id: "invertida-1",
     categorySlug: "invertidas",
     title: "Preparação para invertidas com segurança",
-    image: "/placeholders/placeholder-card.svg",
+    image: "/camila/invetidas.png",
     duration: "40 min",
     level: "intermediário",
     requiresLogin: true
