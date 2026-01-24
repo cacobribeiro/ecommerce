@@ -13,7 +13,7 @@ import SecondaryButton from "../components/SecondaryButton.jsx";
 import Section from "../components/Section.jsx";
 import SectionTitle from "../components/SectionTitle.jsx";
 import { useSiteConfig } from "../context/SiteConfigContext.jsx";
-import { updateAsset, updatePricing } from "../services/api.js";
+import { fetchAdminAssets, updateAsset, updatePricing } from "../services/api.js";
 
 const assetFields = [
   { label: "Imagem do Hero (Home)", key: "homeHero", size: "1600x900" },
@@ -75,18 +75,16 @@ const Admin = () => {
     setCredentials((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   };
 
-  const handleAuthSubmit = (event) => {
+  const handleAuthSubmit = async (event) => {
     event.preventDefault();
-    const expectedLogin = import.meta.env.VITE_CLIENT || "login";
-    const expectedPass = import.meta.env.VITE_CLIENT_PASS || "senha";
-    const isValid =
-      credentials.login === expectedLogin && credentials.password === expectedPass;
-    if (!isValid) {
-      setFeedback({ type: "error", message: "Credenciais inválidas." });
-      return;
+    try {
+      const response = await fetchAdminAssets(credentials);
+      setConfig((prev) => ({ ...prev, assets: response }));
+      setIsAuthorized(true);
+      setFeedback({ type: "", message: "" });
+    } catch (error) {
+      setFeedback({ type: "error", message: error.message });
     }
-    setIsAuthorized(true);
-    setFeedback({ type: "", message: "" });
   };
 
   if (!isAuthorized) {

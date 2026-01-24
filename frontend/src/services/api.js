@@ -51,6 +51,11 @@ export const fetchSiteConfig = () => apiRequest("/api/site-config");
 const encodeAdminCredentials = ({ login, password }) =>
   `Basic ${btoa(`${login}:${password}`)}`;
 
+export const fetchAdminAssets = (credentials) =>
+  apiRequest("/api/admin/assets", {
+    headers: { Authorization: encodeAdminCredentials(credentials) }
+  });
+
 export const updateAsset = (credentials, payload) =>
   apiRequest("/api/admin/assets", {
     method: "PUT",
