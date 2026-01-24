@@ -13,7 +13,10 @@ router.get("/profile", authMiddleware, (req, res) => {
   return res.json({
     name: user.name,
     email: user.email,
-    plan: user.plan
+    level: user.level,
+    goal: user.goal,
+    preferredDays: user.preferredDays,
+    preferredTimes: user.preferredTimes
   });
 });
 

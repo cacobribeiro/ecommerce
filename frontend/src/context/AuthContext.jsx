@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
@@ -11,13 +11,24 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
   };
 
+  const updateProfile = (data) => {
+    setUser(data);
+  };
+
   const logout = () => {
     setToken("");
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ token, user, login, logout, isAuthenticated: Boolean(token) }),
+    () => ({
+      token,
+      user,
+      login,
+      logout,
+      updateProfile,
+      isAuthenticated: Boolean(token)
+    }),
     [token, user]
   );
 

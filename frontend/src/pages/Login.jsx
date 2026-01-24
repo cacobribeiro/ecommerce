@@ -1,14 +1,16 @@
+import { Alert, Box, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
-import { Alert, Box, Container, Stack, TextField, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/PrimaryButton.jsx";
-import { loginRequest } from "../services/api.js";
+import SecondaryButton from "../components/SecondaryButton.jsx";
+import Section from "../components/Section.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { loginRequest } from "../services/api.js";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: "lara@yoga.com", password: "123456" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (event) => {
@@ -22,19 +24,19 @@ const Login = () => {
     try {
       const data = await loginRequest(form);
       login(data);
-      navigate("/dashboard");
+      navigate("/minha-conta");
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <Box sx={{ py: 8 }}>
-      <Container maxWidth="sm">
+    <Section>
+      <Box sx={{ maxWidth: 480, mx: "auto" }}>
         <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-          <Typography variant="h4">Área do aluno</Typography>
+          <Typography variant="h4">Iniciar sessão</Typography>
           <Typography variant="body1" color="text.secondary">
-            Faça login para acessar seus dados e agendamentos.
+            Acesse sua área pessoal e acompanhe sua jornada.
           </Typography>
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
@@ -55,9 +57,12 @@ const Login = () => {
             required
           />
           <PrimaryButton type="submit">Entrar</PrimaryButton>
+          <SecondaryButton component={Link} to="/cadastro">
+            Criar conta
+          </SecondaryButton>
         </Stack>
-      </Container>
-    </Box>
+      </Box>
+    </Section>
   );
 };
 
