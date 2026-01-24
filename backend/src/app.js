@@ -4,6 +4,7 @@ import express from "express";
 import authRoutes from "./routes/auth.js";
 import leadRoutes from "./routes/leads.js";
 import profileRoutes from "./routes/profile.js";
+import siteConfigRoutes from "./routes/siteConfig.js";
 
 dotenv.config();
 
@@ -18,5 +19,6 @@ app.get("/health", (req, res) => {
 app.use("/api", authRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", leadRoutes);
+app.use("/api", siteConfigRoutes);
 
 export default app;

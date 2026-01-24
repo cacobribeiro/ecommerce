@@ -45,3 +45,19 @@ export const sendContactMessage = (payload) =>
     method: "POST",
     body: JSON.stringify(payload)
   });
+
+export const fetchSiteConfig = () => apiRequest("/api/site-config");
+
+export const updateAsset = (token, payload) =>
+  apiRequest("/api/admin/assets", {
+    method: "PUT",
+    headers: { "X-Admin-Token": token },
+    body: JSON.stringify(payload)
+  });
+
+export const updatePricing = (token, payload) =>
+  apiRequest("/api/admin/pricing", {
+    method: "PUT",
+    headers: { "X-Admin-Token": token },
+    body: JSON.stringify(payload)
+  });

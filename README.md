@@ -10,6 +10,7 @@ Monorepo com **frontend React** e **backend Node.js** para o site de yoga “Cam
 - **Loja** com mandalas (prévia).
 - **Contato** com formulário e dados principais.
 - **Login/Cadastro** com área logada simples.
+- **Admin** para atualizar imagens e preços sem alterar o código.
 
 ## 🗂 Estrutura de pastas
 
@@ -36,11 +37,12 @@ npm install
 
 ### Backend
 
-Crie o arquivo `backend/.env` (opcional para SMTP) com:
+Crie o arquivo `backend/.env` com:
 
 ```
 PORT=4000
 JWT_SECRET=troque-este-valor
+ADMIN_TOKEN=defina-um-token-seguro
 ```
 
 ### Frontend
@@ -88,11 +90,22 @@ npm run lint
 > - **E-mail:** `lara@yoga.com`
 > - **Senha:** `123456`
 
+## 🛠️ Admin (imagens e preços)
+
+1. Acesse `/admin`.
+2. Informe o token configurado em `ADMIN_TOKEN`.
+3. Atualize as imagens e os preços.
+
+> As alterações ficam em memória (reinicia ao reiniciar o backend). Para persistência real, use um storage (S3, Cloudinary) e banco.
+
 ## 📬 Endpoints principais
 
 - `POST /api/login` (login)
 - `POST /api/register` (cadastro)
 - `GET /api/profile` (dados da conta)
+- `GET /api/site-config` (configurações do site)
+- `PUT /api/admin/assets` (atualizar imagens)
+- `PUT /api/admin/pricing` (atualizar preços)
 - `POST /api/private-lessons` (formulário aulas particulares)
 - `POST /api/contact` (contato)
 
@@ -121,6 +134,7 @@ O frontend organiza componentes reutilizáveis (header, footer, cards, botões, 
 3. Defina as variáveis de ambiente:
    - `PORT=4000`
    - `JWT_SECRET=troque-este-valor`
+   - `ADMIN_TOKEN=defina-um-token-seguro`
 
 > Este repositório já inclui `render.yaml` com o serviço de API.
 

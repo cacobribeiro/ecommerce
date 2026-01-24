@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer.jsx";
 import NavBar from "./components/NavBar.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
+import Admin from "./pages/Admin.jsx";
 import Agenda from "./pages/Agenda.jsx";
 import Cadastro from "./pages/Cadastro.jsx";
 import Contato from "./pages/Contato.jsx";
@@ -31,6 +32,7 @@ const App = () => (
         <Route path="/contato" element={<Contato />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/admin" element={<Admin />} />
         <Route
           path="/minha-conta"
           element={

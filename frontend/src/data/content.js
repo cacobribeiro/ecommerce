@@ -51,19 +51,19 @@ export const recordedCategories = [
     slug: "aulas-curtas",
     name: "Aulas curtas",
     description: "Práticas rápidas para encaixar na rotina com leveza.",
-    image: "/placeholders/placeholder-card.svg"
+    assetKey: "categories.aulas-curtas"
   },
   {
     slug: "iniciantes",
     name: "Iniciantes",
     description: "Sequências guiadas com explicações detalhadas e suporte.",
-    image: "/placeholders/placeholder-card.svg"
+    assetKey: "categories.iniciantes"
   },
   {
     slug: "invertidas",
     name: "Invertidas",
     description: "Fortaleça e explore novas perspectivas com segurança.",
-    image: "/placeholders/placeholder-card.svg"
+    assetKey: "categories.invertidas"
   }
 ];
 
@@ -99,7 +99,7 @@ export const recordedLessons = [
     id: "invertida-1",
     categorySlug: "invertidas",
     title: "Preparação para invertidas com segurança",
-    image: "/camila/invetidas.png",
+    image: "/placeholders/placeholder-card.svg",
     duration: "40 min",
     level: "intermediário",
     requiresLogin: true
@@ -117,19 +117,6 @@ export const groupClasses = [
     time: "08h30",
     description: "Acorde com leveza e intenção para o seu dia."
   }
-];
-
-export const pricingGroup = [
-  { period: "Anual", one: "R$ 120,00", two: "R$ 192,00" },
-  { period: "Semestral", one: "R$ 127,00", two: "R$ 204,00" },
-  { period: "Trimestral", one: "R$ 135,00", two: "R$ 216,00" },
-  { period: "Mensal", one: "R$ 150,00", two: "R$ 240,00" }
-];
-
-export const pricingPersonal = [
-  { label: "Aula avulsa", value: "R$ 110,00" },
-  { label: "Pacote com 4 aulas", value: "R$ 396,00" },
-  { label: "Pacote com 8 aulas", value: "R$ 748,00" }
 ];
 
 export const shopProducts = [
@@ -167,4 +154,30 @@ export const footerLinks = [
 export const contactInfo = {
   email: "contato@caminhodoser.com",
   phone: "+55 (11) 99999-0000"
+};
+
+export const defaultSiteConfig = {
+  assets: {
+    homeHero: "/placeholders/placeholder-card.svg",
+    categories: {
+      "aulas-curtas": "/placeholders/placeholder-card.svg",
+      iniciantes: "/placeholders/placeholder-card.svg",
+      invertidas: "/placeholders/placeholder-card.svg"
+    },
+    plans: {
+      group: "/placeholders/placeholder-card.svg",
+      personal: "/placeholders/placeholder-card.svg"
+    }
+  },
+  pricingGroup: [
+    { period: "Anual", one: "R$ 120,00", two: "R$ 192,00" },
+    { period: "Semestral", one: "R$ 127,00", two: "R$ 204,00" },
+    { period: "Trimestral", one: "R$ 135,00", two: "R$ 216,00" },
+    { period: "Mensal", one: "R$ 150,00", two: "R$ 240,00" }
+  ],
+  pricingPersonal: [
+    { label: "Aula avulsa", value: "R$ 110,00" },
+    { label: "Pacote com 4 aulas", value: "R$ 396,00" },
+    { label: "Pacote com 8 aulas", value: "R$ 748,00" }
+  ]
 };
