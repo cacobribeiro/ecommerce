@@ -4,6 +4,11 @@ import {
   Divider,
   Grid,
   Stack,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Slider,
   TextField,
   Typography
 } from "@mui/material";
@@ -31,23 +36,87 @@ const Admin = () => {
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [pricingGroup, setPricingGroup] = useState(config.pricingGroup);
   const [pricingPersonal, setPricingPersonal] = useState(config.pricingPersonal);
+  const [cropState, setCropState] = useState({
+    open: false,
+    key: "",
+    imageSrc: "",
+    width: 1200,
+    height: 800,
+    zoom: 1,
+    offsetX: 50,
+    offsetY: 50
+  });
 
   const assetMap = useMemo(() => config.assets, [config.assets]);
 
-  const handleAssetChange = async (key, file) => {
+  const parseSize = (size) => {
+    const [width, height] = size.split("x").map((value) => Number(value));
+    return {
+      width: Number.isFinite(width) ? width : 1200,
+      height: Number.isFinite(height) ? height : 800
+    };
+  };
+
+  const handleAssetChange = async (key, file, size) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const image = reader.result;
-        const response = await updateAsset(credentials, { key, image });
-        setConfig((prev) => ({ ...prev, assets: response.assets }));
-        setFeedback({ type: "success", message: "Imagem atualizada com sucesso." });
-      } catch (error) {
-        setFeedback({ type: "error", message: error.message });
+    reader.onloadend = () => {
+      if (typeof reader.result !== "string") {
+        setFeedback({ type: "error", message: "Não foi possível carregar a imagem." });
+        return;
       }
+      const { width, height } = parseSize(size);
+      setCropState({
+        open: true,
+        key,
+        imageSrc: reader.result,
+        width,
+        height,
+        zoom: 1,
+        offsetX: 50,
+        offsetY: 50
+      });
     };
     reader.readAsDataURL(file);
+  };
+
+  const createCroppedWebp = ({ imageSrc, width, height, zoom, offsetX, offsetY }) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Não foi possível processar a imagem."));
+          return;
+        }
+        const scaledWidth = image.width * zoom;
+        const scaledHeight = image.height * zoom;
+        const centerX = (offsetX / 100) * width;
+        const centerY = (offsetY / 100) * height;
+        const drawX = centerX - scaledWidth / 2;
+        const drawY = centerY - scaledHeight / 2;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, drawX, drawY, scaledWidth, scaledHeight);
+        resolve(canvas.toDataURL("image/webp", 0.9));
+      };
+      image.onerror = () => reject(new Error("Não foi possível carregar a imagem."));
+      image.src = imageSrc;
+    });
+
+  const handleCropSave = async () => {
+    try {
+      const image = await createCroppedWebp(cropState);
+      const response = await updateAsset(credentials, { key: cropState.key, image });
+      setConfig((prev) => ({ ...prev, assets: response.assets }));
+      setFeedback({ type: "success", message: "Imagem atualizada com sucesso." });
+      setCropState((prev) => ({ ...prev, open: false }));
+    } catch (error) {
+      setFeedback({ type: "error", message: error.message });
+    }
   };
 
   const handlePricingSubmit = async () => {
@@ -161,14 +230,84 @@ const Admin = () => {
                 <input
                   type="file"
                   hidden
-                  accept="image/*"
-                  onChange={(event) => handleAssetChange(field.key, event.target.files?.[0])}
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={(event) =>
+                    handleAssetChange(field.key, event.target.files?.[0], field.size)
+                  }
                 />
               </SecondaryButton>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                Enviaremos a imagem em WebP. Ajuste o recorte antes de salvar.
+              </Typography>
             </Box>
           </Grid>
         ))}
       </Grid>
+
+      <Dialog open={cropState.open} onClose={() => setCropState((prev) => ({ ...prev, open: false }))}>
+        <DialogTitle>Recortar imagem</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Ajuste o enquadramento para o tamanho {cropState.width}x{cropState.height}.
+          </Typography>
+          <Box
+            sx={{
+              width: "100%",
+              height: 320,
+              borderRadius: 2,
+              border: "1px solid rgba(202, 163, 84, 0.25)",
+              backgroundColor: "rgba(0, 0, 0, 0.04)",
+              backgroundImage: `url(${cropState.imageSrc})`,
+              backgroundSize: `${cropState.zoom * 100}%`,
+              backgroundPosition: `${cropState.offsetX}% ${cropState.offsetY}%`,
+              backgroundRepeat: "no-repeat",
+              mb: 3
+            }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            Zoom
+          </Typography>
+          <Slider
+            value={cropState.zoom}
+            min={1}
+            max={3}
+            step={0.05}
+            onChange={(_, value) =>
+              setCropState((prev) => ({ ...prev, zoom: Number(value) }))
+            }
+          />
+          <Typography variant="caption" color="text.secondary">
+            Posição horizontal
+          </Typography>
+          <Slider
+            value={cropState.offsetX}
+            min={0}
+            max={100}
+            step={1}
+            onChange={(_, value) =>
+              setCropState((prev) => ({ ...prev, offsetX: Number(value) }))
+            }
+          />
+          <Typography variant="caption" color="text.secondary">
+            Posição vertical
+          </Typography>
+          <Slider
+            value={cropState.offsetY}
+            min={0}
+            max={100}
+            step={1}
+            onChange={(_, value) =>
+              setCropState((prev) => ({ ...prev, offsetY: Number(value) }))
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <SecondaryButton onClick={() => setCropState((prev) => ({ ...prev, open: false }))}>
+            Cancelar
+          </SecondaryButton>
+          <PrimaryButton onClick={handleCropSave}>Salvar recorte</PrimaryButton>
+        </DialogActions>
+      </Dialog>
 
       <Divider sx={{ my: 4 }} />
 
