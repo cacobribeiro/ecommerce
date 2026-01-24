@@ -26,7 +26,9 @@ const Home = () => {
               <Typography variant="overline" color="secondary.main" fontWeight={600}>
                 {heroContent.eyebrow}
               </Typography>
-              <Typography variant="h1">{heroContent.title}</Typography>
+              <Typography variant="h1" sx={{ color: "primary.main" }}>
+                {heroContent.title}
+              </Typography>
               <Typography variant="h5" color="text.secondary">
                 {heroContent.teacher}
               </Typography>

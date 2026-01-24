@@ -37,40 +37,50 @@ const NavBar = () => {
 
   return (
     <AppBar position="sticky" elevation={0} color="transparent" sx={{ backdropFilter: "blur(8px)" }}>
-      <Toolbar sx={{ justifyContent: "space-between", py: 1 }}>
-        <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif" }}>
-          Caminho do Ser
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ display: { xs: "none", md: "flex" } }}>
-          {navItems.map((item) =>
-            item.children ? (
-              <Button
-                key={item.label}
-                color="inherit"
-                endIcon={<KeyboardArrowDownIcon />}
-                onClick={(event) => handleOpenMenu(event, item)}
-              >
-                {item.label}
-              </Button>
-            ) : (
-              <Button key={item.label} component={Link} to={item.to} color="inherit">
-                {item.label}
-              </Button>
-            )
-          )}
-          <PrimaryButton component={Link} to={isAuthenticated ? "/minha-conta" : "/login"}>
+      <Toolbar sx={{ py: 1 }}>
+        <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+          <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", color: "primary.main" }}>
+            Caminho do Ser
+          </Typography>
+        </Box>
+        <Box sx={{ display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            {navItems.map((item) =>
+              item.children ? (
+                <Button
+                  key={item.label}
+                  color="inherit"
+                  endIcon={<KeyboardArrowDownIcon />}
+                  onClick={(event) => handleOpenMenu(event, item)}
+                >
+                  {item.label}
+                </Button>
+              ) : (
+                <Button key={item.label} component={Link} to={item.to} color="inherit">
+                  {item.label}
+                </Button>
+              )
+            )}
+          </Stack>
+        </Box>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 2 }}>
+          <PrimaryButton
+            component={Link}
+            to={isAuthenticated ? "/minha-conta" : "/login"}
+            sx={{ display: { xs: "none", md: "inline-flex" } }}
+          >
             {isAuthenticated ? "Minha conta" : "Iniciar sessão"}
           </PrimaryButton>
-        </Stack>
-        <IconButton
-          edge="end"
-          color="inherit"
-          onClick={() => setMobileOpen(true)}
-          sx={{ display: { xs: "inline-flex", md: "none" } }}
-          aria-label="Abrir menu"
-        >
-          <MenuIcon />
-        </IconButton>
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={() => setMobileOpen(true)}
+            sx={{ display: { xs: "inline-flex", md: "none" } }}
+            aria-label="Abrir menu"
+          >
+            <MenuIcon />
+          </IconButton>
+        </Box>
       </Toolbar>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
@@ -83,7 +93,7 @@ const NavBar = () => {
 
       <Drawer anchor="right" open={mobileOpen} onClose={() => setMobileOpen(false)}>
         <Box sx={{ width: 280, p: 3 }}>
-          <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif" }}>
+          <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", color: "primary.main" }}>
             Caminho do Ser
           </Typography>
           <Divider sx={{ my: 2 }} />
