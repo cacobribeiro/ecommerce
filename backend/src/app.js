@@ -2,9 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
-import planRoutes from "./routes/plans.js";
 import profileRoutes from "./routes/profile.js";
-import bookingRoutes from "./routes/bookings.js";
+import leadRoutes from "./routes/leads.js";
 
 dotenv.config();
 
@@ -17,8 +16,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api", authRoutes);
-app.use("/api", planRoutes);
 app.use("/api", profileRoutes);
-app.use("/api", bookingRoutes);
+app.use("/api", leadRoutes);
 
 export default app;

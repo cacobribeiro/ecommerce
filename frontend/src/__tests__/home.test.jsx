@@ -7,6 +7,6 @@ const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 describe("Home", () => {
   it("renderiza título principal", () => {
     renderWithRouter(<Home />);
-    expect(screen.getByText(/Aulas de yoga/i)).toBeInTheDocument();
+    expect(screen.getByText(/Caminho do Ser/i)).toBeInTheDocument();
   });
 });

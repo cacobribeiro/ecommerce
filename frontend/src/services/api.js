@@ -23,27 +23,25 @@ export const loginRequest = (payload) =>
     body: JSON.stringify(payload)
   });
 
-export const fetchPlans = () => apiRequest("/api/plans");
+export const registerRequest = (payload) =>
+  apiRequest("/api/register", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 
 export const fetchProfile = (token) =>
   apiRequest("/api/profile", {
     headers: { Authorization: `Bearer ${token}` }
   });
 
-export const fetchBookings = (token) =>
-  apiRequest("/api/bookings", {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-export const createBooking = (token, payload) =>
-  apiRequest("/api/bookings", {
+export const sendPrivateLessonLead = (payload) =>
+  apiRequest("/api/private-lessons", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload)
   });
 
-export const cancelBooking = (token, id) =>
-  apiRequest(`/api/bookings/${id}/cancel`, {
+export const sendContactMessage = (payload) =>
+  apiRequest("/api/contact", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` }
+    body: JSON.stringify(payload)
   });
