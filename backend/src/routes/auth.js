@@ -1,6 +1,6 @@
 import express from "express";
 import { addUser, users, verifyUserPassword } from "../data.js";
-import { createToken } from "../services/auth.js";
+import { createToken, getSessionUser } from "../services/auth.js";
 
 const router = express.Router();
 
@@ -12,6 +12,7 @@ router.post("/login", (req, res) => {
     return res.status(401).json({ message: "Credenciais inválidas." });
   }
 
+  req.session.user = { id: user.id, email: user.email, name: user.name };
   const token = createToken({ id: user.id, email: user.email, name: user.name });
   return res.json({
     token,
@@ -38,6 +39,7 @@ router.post("/register", (req, res) => {
   }
 
   const user = addUser({ name, email, password, level, goal, preferredDays, preferredTimes });
+  req.session.user = { id: user.id, email: user.email, name: user.name };
   const token = createToken({ id: user.id, email: user.email, name: user.name });
 
   return res.status(201).json({
@@ -50,6 +52,39 @@ router.post("/register", (req, res) => {
       preferredDays: user.preferredDays,
       preferredTimes: user.preferredTimes
     }
+  });
+});
+
+router.get("/session", (req, res) => {
+  const sessionUser = getSessionUser(req);
+  if (!sessionUser) {
+    return res.json({ authenticated: false });
+  }
+
+  const user = users.find((item) => item.id === sessionUser.id);
+  if (!user) {
+    req.session.destroy(() => null);
+    return res.json({ authenticated: false });
+  }
+
+  const token = createToken({ id: user.id, email: user.email, name: user.name });
+  return res.json({
+    authenticated: true,
+    token,
+    user: {
+      name: user.name,
+      email: user.email,
+      level: user.level,
+      goal: user.goal,
+      preferredDays: user.preferredDays,
+      preferredTimes: user.preferredTimes
+    }
+  });
+});
+
+router.post("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.json({ authenticated: false });
   });
 });
 

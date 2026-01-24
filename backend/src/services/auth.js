@@ -7,7 +7,15 @@ export const createToken = (payload) => jwt.sign(payload, SECRET, { expiresIn: E
 
 export const verifyToken = (token) => jwt.verify(token, SECRET);
 
+export const getSessionUser = (req) => req.session?.user ?? null;
+
 export const authMiddleware = (req, res, next) => {
+  const sessionUser = getSessionUser(req);
+  if (sessionUser) {
+    req.user = sessionUser;
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ message: "Token não informado." });

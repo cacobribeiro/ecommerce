@@ -3,7 +3,17 @@ import { siteConfig, updateAsset, updatePricing } from "../data.js";
 
 const router = express.Router();
 
+const isValidAdminCredentials = (login, password) => {
+  const expectedLogin = process.env.ADMIN_USER || "login";
+  const expectedPass = process.env.ADMIN_PASS || "senha";
+  return login === expectedLogin && password === expectedPass;
+};
+
 const adminAuth = (req, res, next) => {
+  if (req.session?.admin) {
+    return next();
+  }
+
   const authHeader = req.headers.authorization || "";
   const [scheme, encoded] = authHeader.split(" ");
   if (scheme !== "Basic" || !encoded) {
@@ -12,9 +22,7 @@ const adminAuth = (req, res, next) => {
 
   const decoded = Buffer.from(encoded, "base64").toString("utf8");
   const [login, password] = decoded.split(":");
-  const expectedLogin = process.env.ADMIN_USER || "login";
-  const expectedPass = process.env.ADMIN_PASS || "senha";
-  if (login !== expectedLogin || password !== expectedPass) {
+  if (!isValidAdminCredentials(login, password)) {
     return res.status(401).json({ message: "Credenciais de admin inválidas." });
   }
   return next();
@@ -22,6 +30,31 @@ const adminAuth = (req, res, next) => {
 
 router.get("/site-config", (req, res) => {
   res.json(siteConfig);
+});
+
+router.post("/admin/login", (req, res) => {
+  const { login, password } = req.body || {};
+  if (!login || !password) {
+    return res.status(400).json({ message: "Informe login e senha." });
+  }
+
+  if (!isValidAdminCredentials(login, password)) {
+    return res.status(401).json({ message: "Credenciais de admin inválidas." });
+  }
+
+  req.session.admin = { login };
+  return res.json({ authenticated: true });
+});
+
+router.get("/admin/session", (req, res) => {
+  return res.json({ authenticated: Boolean(req.session?.admin) });
+});
+
+router.post("/admin/logout", (req, res) => {
+  if (req.session?.admin) {
+    delete req.session.admin;
+  }
+  return res.json({ authenticated: false });
 });
 
 router.get("/admin/assets", adminAuth, (req, res) => {

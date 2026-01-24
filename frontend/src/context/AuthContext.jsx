@@ -1,10 +1,27 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { fetchSession, logoutRequest } from "../services/api.js";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState("");
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchSession()
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.authenticated) {
+          setToken(data.token || "");
+          setUser(data.user || null);
+        }
+      })
+      .catch(() => null);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const login = (data) => {
     setToken(data.token);
@@ -15,7 +32,12 @@ export const AuthProvider = ({ children }) => {
     setUser(data);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await logoutRequest();
+    } catch (error) {
+      // ignore logout errors, still clear local state
+    }
     setToken("");
     setUser(null);
   };
