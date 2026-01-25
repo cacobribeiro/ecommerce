@@ -22,7 +22,7 @@ export const navItems = [
 export const heroContent = {
   eyebrow: "Conecte-se com você mesmo.",
   title: "Caminho do Ser",
-  teacher: "Camila Vieira",
+  teacher: "Profª Camila Vieira",
   subtitle: "Se conecte com você",
   description: "Vivenciar o yoga para se descobrir e se conhecer através dele."
 };
