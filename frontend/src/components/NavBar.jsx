@@ -36,7 +36,18 @@ const NavBar = () => {
   };
 
   return (
-    <AppBar position="sticky" elevation={0} color="transparent" sx={{ backdropFilter: "blur(8px)" }}>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      color="transparent"
+      sx={{
+        backdropFilter: "blur(8px)",
+        bgcolor: "rgba(255, 255, 255, 0.92)",
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)"
+      }}
+    >
       <Toolbar sx={{ py: 1 }}>
         <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
           <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", color: "primary.main" }}>
