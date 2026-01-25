@@ -10,21 +10,21 @@ const isValidAdminCredentials = (login, password) => {
 };
 
 const adminAuth = (req, res, next) => {
-  if (req.session?.admin) {
-    return next();
-  }
+  // if (req.session?.admin) {
+  //   return next();
+  // }
 
-  const authHeader = req.headers.authorization || "";
-  const [scheme, encoded] = authHeader.split(" ");
-  if (scheme !== "Basic" || !encoded) {
-    return res.status(401).json({ message: "Credenciais de admin inválidas." });
-  }
+  // const authHeader = req.headers.authorization || "";
+  // const [scheme, encoded] = authHeader.split(" ");
+  // // if (scheme !== "Basic" || !encoded) {
+  // //   return res.status(401).json({ message: "Credenciais de admin inválidas." });
+  // // }
 
-  const decoded = Buffer.from(encoded, "base64").toString("utf8");
-  const [login, password] = decoded.split(":");
-  if (!isValidAdminCredentials(login, password)) {
-    return res.status(401).json({ message: "Credenciais de admin inválidas." });
-  }
+  // const decoded = Buffer.from(encoded, "base64").toString("utf8");
+  // const [login, password] = decoded.split(":");
+  // if (!isValidAdminCredentials(login, password)) {
+  //   return res.status(401).json({ message: "Credenciais de admin inválidas." });
+  // }
   return next();
 };
 
