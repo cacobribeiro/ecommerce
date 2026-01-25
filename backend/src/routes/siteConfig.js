@@ -38,7 +38,8 @@ router.post("/admin/login", (req, res) => {
     return res.status(400).json({ message: "Informe login e senha." });
   }
 
-  if (!isValidAdminCredentials(login, password)) {
+  if (!isValidAdminCredentials(login, password)) {  
+    console.log(login, password)
     return res.status(401).json({ message: "Credenciais de admin inválidas." });
   }
 
