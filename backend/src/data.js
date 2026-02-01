@@ -1,4 +1,7 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const hashPassword = (password, salt) =>
   crypto.scryptSync(password, salt, 64).toString("hex");
@@ -39,7 +42,7 @@ export const users = [
   })
 ];
 
-export const siteConfig = {
+const defaultSiteConfig = {
   assets: {
     homeHero: "/placeholders/placeholder-card.svg",
     categories: {
@@ -65,6 +68,55 @@ export const siteConfig = {
   ]
 };
 
+const dataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "data");
+const siteConfigPath = path.join(dataDir, "siteConfig.json");
+
+const mergeSiteConfig = (data) => ({
+  assets: {
+    homeHero: data?.assets?.homeHero ?? defaultSiteConfig.assets.homeHero,
+    categories: {
+      "aulas-curtas":
+        data?.assets?.categories?.["aulas-curtas"] ??
+        defaultSiteConfig.assets.categories["aulas-curtas"],
+      iniciantes:
+        data?.assets?.categories?.iniciantes ??
+        defaultSiteConfig.assets.categories.iniciantes,
+      invertidas:
+        data?.assets?.categories?.invertidas ??
+        defaultSiteConfig.assets.categories.invertidas
+    },
+    plans: {
+      group: data?.assets?.plans?.group ?? defaultSiteConfig.assets.plans.group,
+      personal: data?.assets?.plans?.personal ?? defaultSiteConfig.assets.plans.personal
+    }
+  },
+  pricingGroup: Array.isArray(data?.pricingGroup)
+    ? data.pricingGroup
+    : defaultSiteConfig.pricingGroup,
+  pricingPersonal: Array.isArray(data?.pricingPersonal)
+    ? data.pricingPersonal
+    : defaultSiteConfig.pricingPersonal
+});
+
+const loadSiteConfig = () => {
+  try {
+    if (fs.existsSync(siteConfigPath)) {
+      const fileContents = fs.readFileSync(siteConfigPath, "utf8");
+      return mergeSiteConfig(JSON.parse(fileContents));
+    }
+  } catch (error) {
+    console.warn("Não foi possível carregar o siteConfig persistido.", error);
+  }
+  return mergeSiteConfig();
+};
+
+const persistSiteConfig = () => {
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(siteConfigPath, JSON.stringify(siteConfig, null, 2));
+};
+
+export const siteConfig = loadSiteConfig();
+
 export const privateLessonLeads = [];
 
 export const contactMessages = [];
@@ -84,14 +136,17 @@ export const updateAsset = (key, image) => {
   const [section, subKey] = key.split(".");
   if (section === "homeHero") {
     siteConfig.assets.homeHero = image;
+    persistSiteConfig();
     return true;
   }
   if (section === "categories" && subKey && siteConfig.assets.categories[subKey] !== undefined) {
     siteConfig.assets.categories[subKey] = image;
+    persistSiteConfig();
     return true;
   }
   if (section === "plans" && subKey && siteConfig.assets.plans[subKey] !== undefined) {
     siteConfig.assets.plans[subKey] = image;
+    persistSiteConfig();
     return true;
   }
   return false;
@@ -104,4 +159,5 @@ export const updatePricing = ({ pricingGroup, pricingPersonal }) => {
   if (Array.isArray(pricingPersonal)) {
     siteConfig.pricingPersonal = pricingPersonal;
   }
+  persistSiteConfig();
 };
