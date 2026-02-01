@@ -124,34 +124,51 @@ const Admin = () => {
         return;
       }
       const { width, height } = parseSize(size);
-      setImageMeta({ width: 0, height: 0 });
-      setCropState({
-        open: true,
-        key,
-        imageSrc: reader.result,
-        width,
-        height,
-        zoom: 1,
-        offsetX: 50,
-        offsetY: 50
-      });
+      const previewImage = new Image();
+      previewImage.onload = () => {
+        setImageMeta({ width: previewImage.width, height: previewImage.height });
+        setCropState({
+          open: true,
+          key,
+          imageSrc: reader.result,
+          width,
+          height,
+          zoom: 1,
+          offsetX: 50,
+          offsetY: 50
+        });
+      };
+      previewImage.onerror = () => {
+        setFeedback({ type: "error", message: "Não foi possível carregar a imagem." });
+      };
+      previewImage.src = reader.result;
     };
     reader.readAsDataURL(file);
   };
 
   useEffect(() => {
     if (!cropState.open) return;
+    const preview = previewRef.current;
+    if (!preview) return;
     const updatePreviewSize = () => {
-      const preview = previewRef.current;
-      if (!preview) return;
-      setPreviewSize({ width: preview.clientWidth, height: preview.clientHeight });
+      const rect = preview.getBoundingClientRect();
+      setPreviewSize({ width: rect.width, height: rect.height });
     };
-    updatePreviewSize();
-    window.addEventListener("resize", updatePreviewSize);
-    return () => window.removeEventListener("resize", updatePreviewSize);
+    const updateAfterPaint = () => requestAnimationFrame(updatePreviewSize);
+    updateAfterPaint();
+    const resizeObserver = new ResizeObserver(updateAfterPaint);
+    resizeObserver.observe(preview);
+    window.addEventListener("resize", updateAfterPaint);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateAfterPaint);
+    };
   }, [cropState.open, cropState.width, cropState.height]);
 
   const previewScale = useMemo(() => {
+    if (!previewSize.width || !previewSize.height || !imageMeta.width || !imageMeta.height) {
+      return { baseScale: 1, scaledWidth: 0, scaledHeight: 0 };
+    }
     const baseScale = getCoverScale(
       previewSize.width,
       previewSize.height,
@@ -247,6 +264,7 @@ const Admin = () => {
 
   const handlePointerDown = (event) => {
     if (!previewRef.current) return;
+    event.preventDefault();
     previewRef.current.setPointerCapture(event.pointerId);
     dragState.current = {
       startX: event.clientX,
@@ -259,6 +277,7 @@ const Admin = () => {
 
   const handlePointerMove = (event) => {
     if (!dragState.current || !previewScale.scaledWidth || !previewScale.scaledHeight) return;
+    event.preventDefault();
     const deltaX = event.clientX - dragState.current.startX;
     const deltaY = event.clientY - dragState.current.startY;
     const nextOffsetX = clampValue(
@@ -425,16 +444,19 @@ const Admin = () => {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
+            onPointerCancel={handlePointerUp}
             sx={{
               width: "100%",
               aspectRatio: `${cropState.width} / ${cropState.height}`,
               maxHeight: 360,
+              minHeight: 200,
               borderRadius: 2,
               border: "1px solid rgba(202, 163, 84, 0.25)",
               backgroundColor: "rgba(0, 0, 0, 0.04)",
               overflow: "hidden",
               position: "relative",
               cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none",
               mb: 2
             }}
           >
@@ -451,15 +473,21 @@ const Admin = () => {
                 }}
                 sx={{
                   position: "absolute",
-                  top: previewSize.height
-                    ? `calc(50% - ${(cropState.offsetY / 100) * previewScale.scaledHeight}px)`
-                    : "50%",
-                  left: previewSize.width
-                    ? `calc(50% - ${(cropState.offsetX / 100) * previewScale.scaledWidth}px)`
-                    : "50%",
-                  width: previewScale.scaledWidth || "auto",
-                  height: previewScale.scaledHeight || "auto",
-                  transform: previewSize.width && previewSize.height ? "none" : "translate(-50%, -50%)",
+                  top:
+                    previewScale.scaledHeight && previewSize.height
+                      ? `calc(50% - ${(cropState.offsetY / 100) * previewScale.scaledHeight}px)`
+                      : "50%",
+                  left:
+                    previewScale.scaledWidth && previewSize.width
+                      ? `calc(50% - ${(cropState.offsetX / 100) * previewScale.scaledWidth}px)`
+                      : "50%",
+                  width: previewScale.scaledWidth || "100%",
+                  height: previewScale.scaledHeight || "100%",
+                  objectFit: previewScale.scaledWidth ? "fill" : "cover",
+                  transform:
+                    previewScale.scaledWidth && previewScale.scaledHeight
+                      ? "none"
+                      : "translate(-50%, -50%)",
                   userSelect: "none",
                   pointerEvents: "none"
                 }}
