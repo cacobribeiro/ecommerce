@@ -49,8 +49,8 @@ const Admin = () => {
     width: 1200,
     height: 800,
     zoom: 1,
-    offsetX: 50,
-    offsetY: 50
+    offsetX: 0,
+    offsetY: 0
   });
   const [imageMeta, setImageMeta] = useState({ width: 0, height: 0 });
   const [previewSize, setPreviewSize] = useState({ width: 0, height: 0 });
@@ -94,26 +94,23 @@ const Admin = () => {
     return Math.max(frameWidth / imageWidth, frameHeight / imageHeight);
   };
 
-  const getOffsetBounds = (scaledWidth, scaledHeight, frameWidth, frameHeight) => {
-    if (!scaledWidth || !scaledHeight || !frameWidth || !frameHeight) {
-      return { minX: 0, maxX: 100, minY: 0, maxY: 100 };
-    }
-    let minX = 50;
-    let maxX = 50;
-    if (scaledWidth > frameWidth) {
-      const edge = (frameWidth / 2 / scaledWidth) * 100;
-      minX = edge;
-      maxX = 100 - edge;
-    }
-    let minY = 50;
-    let maxY = 50;
-    if (scaledHeight > frameHeight) {
-      const edge = (frameHeight / 2 / scaledHeight) * 100;
-      minY = edge;
-      maxY = 100 - edge;
-    }
-    return { minX, maxX, minY, maxY };
+  const getScaledSize = (frameWidth, frameHeight, imageWidth, imageHeight, zoom) => {
+    const baseScale = getCoverScale(frameWidth, frameHeight, imageWidth, imageHeight);
+    return {
+      baseScale,
+      scaledWidth: imageWidth * baseScale * zoom,
+      scaledHeight: imageHeight * baseScale * zoom
+    };
   };
+
+  const getMaxOffsets = (scaledWidth, scaledHeight, frameWidth, frameHeight) => ({
+    maxX: Math.max(0, (scaledWidth - frameWidth) / 2),
+    maxY: Math.max(0, (scaledHeight - frameHeight) / 2)
+  });
+
+  const clampOffsetRatio = (value) => clampValue(value, -1, 1);
+
+  const resolveOffsetFromRatio = (ratio, maxOffset) => (maxOffset ? ratio * maxOffset : 0);
 
   const handleAssetChange = async (key, file, size) => {
     if (!file) return;
@@ -134,8 +131,8 @@ const Admin = () => {
           width,
           height,
           zoom: 1,
-          offsetX: 50,
-          offsetY: 50
+          offsetX: 0,
+          offsetY: 0
         });
       };
       previewImage.onerror = () => {
@@ -176,34 +173,33 @@ const Admin = () => {
     ) {
       return { baseScale: 1, scaledWidth: 0, scaledHeight: 0 };
     }
-    const baseScale = getCoverScale(
+    return getScaledSize(
       previewSize.width,
       previewSize.height,
       imageMeta.width,
-      imageMeta.height
+      imageMeta.height,
+      cropState.zoom
     );
-    const scaledWidth = imageMeta.width * baseScale * cropState.zoom;
-    const scaledHeight = imageMeta.height * baseScale * cropState.zoom;
-    return { baseScale, scaledWidth, scaledHeight };
   }, [cropState.zoom, imageMeta.height, imageMeta.width, previewSize.height, previewSize.width]);
 
-  const previewBounds = useMemo(
-    () =>
-      getOffsetBounds(
-        previewScale.scaledWidth,
-        previewScale.scaledHeight,
-        previewSize.width,
-        previewSize.height
-      ),
-    [previewScale.scaledHeight, previewScale.scaledWidth, previewSize.height, previewSize.width]
-  );
+  const previewBounds = useMemo(() => {
+    if (!previewScale.scaledWidth || !previewScale.scaledHeight) {
+      return { maxX: 0, maxY: 0 };
+    }
+    return getMaxOffsets(
+      previewScale.scaledWidth,
+      previewScale.scaledHeight,
+      previewSize.width,
+      previewSize.height
+    );
+  }, [previewScale.scaledHeight, previewScale.scaledWidth, previewSize.height, previewSize.width]);
 
   useEffect(() => {
     if (!cropState.open) return;
     if (!previewSize.width || !previewSize.height) return;
     setCropState((prev) => {
-      const nextX = clampValue(prev.offsetX, previewBounds.minX, previewBounds.maxX);
-      const nextY = clampValue(prev.offsetY, previewBounds.minY, previewBounds.maxY);
+      const nextX = previewBounds.maxX === 0 ? 0 : clampOffsetRatio(prev.offsetX);
+      const nextY = previewBounds.maxY === 0 ? 0 : clampOffsetRatio(prev.offsetY);
       if (nextX === prev.offsetX && nextY === prev.offsetY) return prev;
       return { ...prev, offsetX: nextX, offsetY: nextY };
     });
@@ -211,8 +207,6 @@ const Admin = () => {
     cropState.open,
     previewBounds.maxX,
     previewBounds.maxY,
-    previewBounds.minX,
-    previewBounds.minY,
     previewSize.height,
     previewSize.width
   ]);
@@ -229,16 +223,18 @@ const Admin = () => {
           reject(new Error("Não foi possível processar a imagem."));
           return;
         }
-        const baseScale = getCoverScale(width, height, image.width, image.height);
-        const scaledWidth = image.width * baseScale * zoom;
-        const scaledHeight = image.height * baseScale * zoom;
-        const bounds = getOffsetBounds(scaledWidth, scaledHeight, width, height);
-        const safeOffsetX = clampValue(offsetX, bounds.minX, bounds.maxX);
-        const safeOffsetY = clampValue(offsetY, bounds.minY, bounds.maxY);
-        const centerX = (safeOffsetX / 100) * scaledWidth;
-        const centerY = (safeOffsetY / 100) * scaledHeight;
-        const drawX = width / 2 - centerX;
-        const drawY = height / 2 - centerY;
+        const { scaledWidth, scaledHeight } = getScaledSize(
+          width,
+          height,
+          image.width,
+          image.height,
+          zoom
+        );
+        const { maxX, maxY } = getMaxOffsets(scaledWidth, scaledHeight, width, height);
+        const safeOffsetX = resolveOffsetFromRatio(clampOffsetRatio(offsetX), maxX);
+        const safeOffsetY = resolveOffsetFromRatio(clampOffsetRatio(offsetY), maxY);
+        const drawX = (width - scaledWidth) / 2 + safeOffsetX;
+        const drawY = (height - scaledHeight) / 2 + safeOffsetY;
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(image, drawX, drawY, scaledWidth, scaledHeight);
@@ -264,8 +260,8 @@ const Admin = () => {
     setCropState((prev) => ({
       ...prev,
       zoom: 1,
-      offsetX: 50,
-      offsetY: 50
+      offsetX: 0,
+      offsetY: 0
     }));
   };
 
@@ -287,20 +283,20 @@ const Admin = () => {
     event.preventDefault();
     const deltaX = event.clientX - dragState.current.startX;
     const deltaY = event.clientY - dragState.current.startY;
-    const nextOffsetX = clampValue(
-      dragState.current.startOffsetX - (deltaX / previewScale.scaledWidth) * 100,
-      previewBounds.minX,
-      previewBounds.maxX
-    );
-    const nextOffsetY = clampValue(
-      dragState.current.startOffsetY - (deltaY / previewScale.scaledHeight) * 100,
-      previewBounds.minY,
-      previewBounds.maxY
-    );
+    const startOffsetX = resolveOffsetFromRatio(dragState.current.startOffsetX, previewBounds.maxX);
+    const startOffsetY = resolveOffsetFromRatio(dragState.current.startOffsetY, previewBounds.maxY);
+    const nextOffsetX = startOffsetX + deltaX;
+    const nextOffsetY = startOffsetY + deltaY;
+    const nextRatioX = previewBounds.maxX
+      ? clampOffsetRatio(nextOffsetX / previewBounds.maxX)
+      : 0;
+    const nextRatioY = previewBounds.maxY
+      ? clampOffsetRatio(nextOffsetY / previewBounds.maxY)
+      : 0;
     setCropState((prev) => ({
       ...prev,
-      offsetX: nextOffsetX,
-      offsetY: nextOffsetY
+      offsetX: nextRatioX,
+      offsetY: nextRatioY
     }));
   };
 
@@ -480,15 +476,17 @@ const Admin = () => {
                 }}
                 sx={{
                   position: "absolute",
-                  top: previewSize.height
-                    ? `calc(50% - ${(cropState.offsetY / 100) * previewScale.scaledHeight}px)`
-                    : "50%",
-                  left: previewSize.width
-                    ? `calc(50% - ${(cropState.offsetX / 100) * previewScale.scaledWidth}px)`
-                    : "50%",
+                  top: "50%",
+                  left: "50%",
                   width: previewScale.scaledWidth || "auto",
                   height: previewScale.scaledHeight || "auto",
-                  transform: previewSize.width && previewSize.height ? "none" : "translate(-50%, -50%)",
+                  transform:
+                    previewSize.width && previewSize.height
+                      ? `translate(-50%, -50%) translate(${resolveOffsetFromRatio(
+                          cropState.offsetX,
+                          previewBounds.maxX
+                        )}px, ${resolveOffsetFromRatio(cropState.offsetY, previewBounds.maxY)}px)`
+                      : "translate(-50%, -50%)",
                   opacity: previewScale.scaledWidth ? 1 : 0,
                   userSelect: "none",
                   pointerEvents: "none"
@@ -497,7 +495,8 @@ const Admin = () => {
             )}
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-            Arraste a imagem com o mouse para reposicionar o recorte.
+            Arraste a imagem com o mouse para reposicionar o recorte. O preview representa exatamente o
+            recorte final.
           </Typography>
           <Typography variant="caption" color="text.secondary">
             Zoom
@@ -515,24 +514,26 @@ const Admin = () => {
             Posição horizontal
           </Typography>
           <Slider
-            value={cropState.offsetX}
-            min={previewBounds.minX}
-            max={previewBounds.maxX}
+            value={Math.round(cropState.offsetX * 100)}
+            min={-100}
+            max={100}
             step={1}
+            disabled={previewBounds.maxX === 0}
             onChange={(_, value) =>
-              setCropState((prev) => ({ ...prev, offsetX: Number(value) }))
+              setCropState((prev) => ({ ...prev, offsetX: Number(value) / 100 }))
             }
           />
           <Typography variant="caption" color="text.secondary">
             Posição vertical
           </Typography>
           <Slider
-            value={cropState.offsetY}
-            min={previewBounds.minY}
-            max={previewBounds.maxY}
+            value={Math.round(cropState.offsetY * 100)}
+            min={-100}
+            max={100}
             step={1}
+            disabled={previewBounds.maxY === 0}
             onChange={(_, value) =>
-              setCropState((prev) => ({ ...prev, offsetY: Number(value) }))
+              setCropState((prev) => ({ ...prev, offsetY: Number(value) / 100 }))
             }
           />
           <SecondaryButton onClick={handleCropReset} sx={{ mt: 1 }}>
