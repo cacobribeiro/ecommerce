@@ -124,17 +124,24 @@ const Admin = () => {
         return;
       }
       const { width, height } = parseSize(size);
-      setImageMeta({ width: 0, height: 0 });
-      setCropState({
-        open: true,
-        key,
-        imageSrc: reader.result,
-        width,
-        height,
-        zoom: 1,
-        offsetX: 50,
-        offsetY: 50
-      });
+      const previewImage = new Image();
+      previewImage.onload = () => {
+        setImageMeta({ width: previewImage.width, height: previewImage.height });
+        setCropState({
+          open: true,
+          key,
+          imageSrc: reader.result,
+          width,
+          height,
+          zoom: 1,
+          offsetX: 50,
+          offsetY: 50
+        });
+      };
+      previewImage.onerror = () => {
+        setFeedback({ type: "error", message: "Não foi possível carregar a imagem." });
+      };
+      previewImage.src = reader.result;
     };
     reader.readAsDataURL(file);
   };
@@ -449,6 +456,7 @@ const Admin = () => {
               width: "100%",
               height: previewSize.height ? `${previewSize.height}px` : "auto",
               maxHeight: 360,
+              minHeight: 200,
               borderRadius: 2,
               border: "1px solid rgba(202, 163, 84, 0.25)",
               backgroundColor: "rgba(0, 0, 0, 0.04)",
