@@ -141,17 +141,34 @@ const Admin = () => {
 
   useEffect(() => {
     if (!cropState.open) return;
+    const preview = previewRef.current;
+    if (!preview) return;
     const updatePreviewSize = () => {
-      const preview = previewRef.current;
-      if (!preview) return;
-      setPreviewSize({ width: preview.clientWidth, height: preview.clientHeight });
+      const width = preview.clientWidth;
+      const height = width
+        ? Math.min(360, Math.round((width * cropState.height) / cropState.width))
+        : 0;
+      setPreviewSize({ width, height });
     };
     updatePreviewSize();
+    const resizeObserver = new ResizeObserver(updatePreviewSize);
+    resizeObserver.observe(preview);
     window.addEventListener("resize", updatePreviewSize);
-    return () => window.removeEventListener("resize", updatePreviewSize);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updatePreviewSize);
+    };
   }, [cropState.open, cropState.width, cropState.height]);
 
   const previewScale = useMemo(() => {
+    if (
+      !previewSize.width ||
+      !previewSize.height ||
+      !imageMeta.width ||
+      !imageMeta.height
+    ) {
+      return { baseScale: 1, scaledWidth: 0, scaledHeight: 0 };
+    }
     const baseScale = getCoverScale(
       previewSize.width,
       previewSize.height,
@@ -247,6 +264,7 @@ const Admin = () => {
 
   const handlePointerDown = (event) => {
     if (!previewRef.current) return;
+    event.preventDefault();
     previewRef.current.setPointerCapture(event.pointerId);
     dragState.current = {
       startX: event.clientX,
@@ -259,6 +277,7 @@ const Admin = () => {
 
   const handlePointerMove = (event) => {
     if (!dragState.current || !previewScale.scaledWidth || !previewScale.scaledHeight) return;
+    event.preventDefault();
     const deltaX = event.clientX - dragState.current.startX;
     const deltaY = event.clientY - dragState.current.startY;
     const nextOffsetX = clampValue(
@@ -425,9 +444,10 @@ const Admin = () => {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
+            onPointerCancel={handlePointerUp}
             sx={{
               width: "100%",
-              aspectRatio: `${cropState.width} / ${cropState.height}`,
+              height: previewSize.height ? `${previewSize.height}px` : "auto",
               maxHeight: 360,
               borderRadius: 2,
               border: "1px solid rgba(202, 163, 84, 0.25)",
@@ -435,6 +455,7 @@ const Admin = () => {
               overflow: "hidden",
               position: "relative",
               cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none",
               mb: 2
             }}
           >
@@ -460,6 +481,7 @@ const Admin = () => {
                   width: previewScale.scaledWidth || "auto",
                   height: previewScale.scaledHeight || "auto",
                   transform: previewSize.width && previewSize.height ? "none" : "translate(-50%, -50%)",
+                  opacity: previewScale.scaledWidth ? 1 : 0,
                   userSelect: "none",
                   pointerEvents: "none"
                 }}
